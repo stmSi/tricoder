@@ -8,7 +8,7 @@ use std::{
     time::Duration,
 };
 
-pub fn scan_ports(mut subdomain: Subdomain) -> Subdomain {
+pub fn scan_ports(subdomain: &mut Subdomain) -> &Subdomain {
     subdomain.open_ports = MOST_COMMON_PORTS_10
         .par_iter() // Multithreaded
         .map(|port| scan_port(&subdomain.domain, *port))
@@ -20,13 +20,12 @@ pub fn scan_ports(mut subdomain: Subdomain) -> Subdomain {
 pub fn scan_port(hostname: &str, port: u16) -> Port {
     let timeout = Duration::from_secs(3);
     let addr_str = format!("{}:{}", hostname, port);
-    println!("{addr_str}");
     let socket_addresses_result = addr_str.to_socket_addrs();
 
-    let socket_addresses : Vec<SocketAddr> = match socket_addresses_result {
+    let socket_addresses: Vec<SocketAddr> = match socket_addresses_result {
         Ok(sock_addr) => sock_addr.collect(),
         Err(err) => {
-            println!("Error while converting socket \"{}\":{}", addr_str, err);
+            eprintln!("Error while converting socket \"{}\":{}", addr_str, err);
             return Port {
                 port,
                 is_open: false,
